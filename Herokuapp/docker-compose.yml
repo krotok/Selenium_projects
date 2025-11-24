@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  tests:
+    build: .
+    container_name: herokuapp-tests
+    environment:
+      - ENV=stage
+      - BROWSER=chrome
+      - HEADLESS=true
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - test-network
+
+  postgres:
+    image: postgres:13
+    container_name: test-postgres
+    environment:
+      POSTGRES_DB: herokuapp_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+    ports:
+      - "5432:5432"
+    networks:
+      - test-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  wiremock:
+    image: wiremock/wiremock:2.35.0
+    container_name: test-wiremock
+    ports:
+      - "8080:8080"
+    networks:
+      - test-network
+    command: ["--global-response-templating", "--verbose"]
+
+  allure:
+    image: frankescobar/allure-docker-service
+    container_name: allure-report
+    environment:
+      CHECK_RESULTS_EVERY_SECONDS: 1
+      KEEP_HISTORY: 1
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./reports/allure-results:/app/allure-results
+      - ./reports/allure-reports:/app/default-reports
+    networks:
+      - test-network
+    depends_on:
+      - tests
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

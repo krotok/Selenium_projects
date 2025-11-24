@@ -1,0 +1,39 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Selenium-specific artifacts
+drivers/
+geckodriver.log
+chromedriver.log
+*.log
+screenshots/
+
+# Local configuration and sensitive data
+config.ini
+.env
+secret_keys.py
+
+# Operating System files
+.DS_Store
+Thumbs.db

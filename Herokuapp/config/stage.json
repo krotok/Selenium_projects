@@ -1,0 +1,13 @@
+{
+  "base_url": "https://the-internet.herokuapp.com",
+  "api_url": "https://the-internet.herokuapp.com",
+  "db_host": "postgres",
+  "db_port": 5432,
+  "db_name": "herokuapp_test",
+  "db_user": "test_user",
+  "db_password": "test_pass",
+  "browser": "chrome",
+  "headless": true,
+  "timeout": 15,
+  "retry_attempts": 5
+}

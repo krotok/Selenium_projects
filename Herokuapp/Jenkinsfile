@@ -1,0 +1,108 @@
+pipeline {
+    agent {
+        docker {
+            image 'python:3.9-slim'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    environment {
+        ENV = 'stage'
+        BROWSER = 'chrome'
+        HEADLESS = 'true'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup') {
+            steps {
+                sh '''
+                    apt-get update && apt-get install -y wget gnupg unzip curl
+                    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+                    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+                    apt-get update && apt-get install -y google-chrome-stable
+                    CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
+                    wget -N http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip
+                    unzip chromedriver_linux64.zip
+                    mv chromedriver /usr/local/bin/
+                    chmod +x /usr/local/bin/chromedriver
+                '''
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'pip install --no-cache-dir -r requirements.txt'
+            }
+        }
+
+        stage('Code Quality') {
+            steps {
+                sh '''
+                    pip install pylint flake8 black
+                    black --check .
+                    flake8 .
+                    pylint pages/ services/ tests/ utils/
+                '''
+            }
+        }
+
+        stage('Run Tests') {
+            parallel {
+                stage('UI Tests') {
+                    steps {
+                        sh 'pytest tests/test_login.py tests/test_dynamic_loading.py -v --alluredir=reports/allure-results -m "ui"'
+                    }
+                }
+                stage('API Tests') {
+                    steps {
+                        sh 'pytest tests/test_api_integration.py -v --alluredir=reports/allure-results -m "api"'
+                    }
+                }
+                stage('Smoke Tests') {
+                    steps {
+                        sh 'pytest tests/ -v --alluredir=reports/allure-results -m "smoke"'
+                    }
+                }
+            }
+        }
+
+        stage('Generate Report') {
+            steps {
+                sh 'allure generate reports/allure-results -o reports/allure-report --clean'
+            }
+        }
+    }
+
+    post {
+        always {
+            allure([
+                includeProperties: false,
+                jdk: '',
+                properties: [],
+                reportBuildPolicy: 'ALWAYS',
+                results: [[path: 'reports/allure-results']]
+            ])
+            archiveArtifacts artifacts: 'reports/**/*', fingerprint: true
+        }
+        success {
+            emailext (
+                subject: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: "Test execution completed successfully. Report: ${env.BUILD_URL}allure/",
+                to: "team@example.com"
+            )
+        }
+        failure {
+            emailext (
+                subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: "Test execution failed. Check: ${env.BUILD_URL}",
+                to: "team@example.com"
+            )
+        }
+    }
+}
