@@ -1,9 +1,5 @@
 # Herokuapp Test Automation Framework
 
-## Senior-Level Test Automation Project
-
-A comprehensive test automation framework demonstrating advanced testing concepts and best practices for Herokuapp applications.
-
 ## Project Overview
 
 This framework showcases enterprise-level test automation with:
@@ -11,11 +7,12 @@ This framework showcases enterprise-level test automation with:
 - **Page Object Model** with service layer abstraction
 - **API Testing** with Requests library
 - **Mock/Stub** testing with WireMock
-- **Database Testing** with PostgreSQL
-- **CI/CD Integration** with Jenkins
-- **Containerization** with Docker
+- **Database Testing** with PostgreSQL - in progress
+- **CI/CD Integration** with Jenkins - in progress 
+- **Containerization** with Docker - in progress
 - **Advanced Reporting** with Allure
-- **Professional Logging** and configuration management
+- **Centralized Logging** 
+- **Centralized configuration management**
 
 ## 🏗️ Architecture
 📦 herokuapp-test-framework
@@ -82,12 +79,17 @@ This framework showcases enterprise-level test automation with:
 1. **Clone and setup:**
 ```bash
 git clone <repository-url>
-cd herokuapp-test-framework
+cd Herokuapp
 pip install -r requirements.txt
 ```
 
 2. **Run all tests:**
 pytest tests/ -v --alluredir=reports/allure-results
+# Run in CI/CD friendly mode
+pytest tests/ -v --alluredir=reports/allure-results --env=stage --headless --log-level=WARNING
+
+# Run specific test
+pytest tests/test_login.py::TestLogin::test_successful_login -v -s
 
 # Run specific test types
 pytest tests/ -m "smoke" -v
@@ -96,9 +98,18 @@ pytest tests/ -m "ui" -v
 
 # Run with different environment
 pytest tests/ --env=stage -v
+pytest tests/ -v --alluredir=rports/allure-results --env=dev --log-level-pytest=DEBUG
+
+# Using the test runner
+python run_tests.py --mode=basic
+python run_tests.py --mode=allure --env=stage --headless --log-level=DEBUG
+
 
 3. **Generate Report:**
+# Generate and view Allure report
 allure serve reports/allure-results
+# Generate static report
+allure generate reports/allure-results -o reports/allure-report --clean
 
 **Docker Execution**
 1. Run complete test suite:
@@ -113,6 +124,20 @@ Create pipeline job in Jenkins
 Point to Jenkinsfile in repository
 Configure environment variables as needed
 Trigger build manually or via webhooks
+
+**Centralized logger**
+Centralized Management - All logging configuration in one place
+Automatic Initialization - Logging is configured when Config is created
+Decorators for Different Types of Operations:
+    @log_function_call - for any functions
+    @log_page_interaction - for page actions
+    @log_api_call - for API requests
+    @log_database_operation - for database operations
+Mixin Class - Easy to add logging to any class via self.logger
+Different Logging Levels for Different Components
+No Need to Import logging in Every File
+Integration with Allure - Logs automatically appear in reports
+Flexible Configuration via JSON files and command line
 
 This comprehensive project demonstrates:
 
@@ -130,3 +155,4 @@ This comprehensive project demonstrates:
 ✅ Pytest Hooks & Fixtures - Advanced test configuration
 ✅ Environment Configs - Dev/Stage configuration management
 ✅ Professional README - Comprehensive documentation
+✅ Centralized logger

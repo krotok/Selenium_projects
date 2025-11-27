@@ -9,5 +9,12 @@
   "browser": "chrome",
   "headless": true,
   "timeout": 15,
-  "retry_attempts": 5
+  "retry_attempts": 5,
+  "logging": {
+    "level": "DEBUG",
+    "log_file": "logs/herokuapp_automation.log",
+    "error_file": "logs/herokuapp_errors.log",
+    "max_file_size": 10485760,
+    "backup_count": 5
+  }
 }

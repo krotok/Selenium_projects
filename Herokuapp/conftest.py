@@ -1,21 +1,18 @@
 import pytest
-import logging
 import allure
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from config import Config
+from config.init import Config
 from services.database_service import DatabaseService
 from services.wiremock_service import WireMockService
 import os
 import time
+from utils.log_decorators import LoggerConfig
+from pages.iframe_page import IFramePage
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 
+# Logging is now automatically configured via Config class
 
 def pytest_addoption(parser):
     """Add custom command line options"""
@@ -28,20 +25,40 @@ def pytest_addoption(parser):
     parser.addoption(
         "--headless", action="store_true", help="Run tests in headless mode"
     )
+    # Use a different name to avoid conflict
+    parser.addoption(
+        "--log-level-pytest", action="store", default="INFO",
+        help="Log level: DEBUG, INFO, WARNING, ERROR"
+    )
 
 
 @pytest.fixture(scope="session")
 def config(request):
     """Load configuration based on environment"""
     env = request.config.getoption("--env")
-    return Config(env)
+    log_level = request.config.getoption("--log-level-pytest")
+
+    config_obj = Config(env)
+
+    # Override log level from command line
+    if log_level:
+        LoggerConfig.setup_logging(log_level=log_level)
+
+    logger = LoggerConfig.get_logger(__name__)
+    logger.info(f"Configuration loaded for environment: {env}")
+
+    return config_obj
 
 
 @pytest.fixture
 def driver(request, config):
     """WebDriver fixture with custom options"""
+    logger = LoggerConfig.get_logger(__name__)
+
     browser = request.config.getoption("--browser")
     headless = request.config.getoption("--headless") or config.get('headless', False)
+
+    logger.info(f"Initializing {browser} browser (headless: {headless})")
 
     if browser.lower() == "chrome":
         options = Options()
@@ -68,10 +85,12 @@ def driver(request, config):
     driver.implicitly_wait(config.get('timeout', 10))
     driver.maximize_window()
 
+    logger.info("WebDriver initialized successfully")
+
     yield driver
 
     # Take screenshot on test failure
-    if request.node.rep_call.failed:
+    if hasattr(request.node, 'rep_call') and request.node.rep_call.failed:
         try:
             screenshot_dir = "reports/screenshots"
             os.makedirs(screenshot_dir, exist_ok=True)
@@ -85,30 +104,38 @@ def driver(request, config):
                 name="failure_screenshot",
                 attachment_type=allure.attachment_type.PNG
             )
+            logger.info(f"Screenshot saved on failure: {screenshot_path}")
         except Exception as e:
-            logging.error(f"Failed to take screenshot: {e}")
+            logger.error(f"Failed to take screenshot: {e}")
 
     driver.quit()
+    logger.info("WebDriver closed")
 
 
 @pytest.fixture(scope="session")
 def database_service(config):
     """Database service fixture"""
+    logger = LoggerConfig.get_logger(__name__)
     service = DatabaseService(config.db_config)
     try:
         service.connect()
+        logger.info("Database service connected")
         yield service
     finally:
         service.disconnect()
+        logger.info("Database service disconnected")
 
 
 @pytest.fixture
 def wiremock_service():
     """WireMock service fixture"""
+    logger = LoggerConfig.get_logger(__name__)
     service = WireMockService()
+    logger.info("WireMock service initialized")
     yield service
     # Cleanup: reset mappings after each test
     service.reset_mappings()
+    logger.info("WireMock service cleanup completed")
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -136,11 +163,24 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "database: mark test as database test"
     )
+    config.addinivalue_line(
+        "markers", "wiremock: tests using wiremock"
+    )
 
 
 @pytest.fixture(autouse=True)
 def log_test_execution(request):
     """Automatically log test execution"""
-    logging.info(f"Starting test: {request.node.name}")
+    logger = LoggerConfig.get_logger(__name__)
+    logger.info(f"Starting test: {request.node.name}")
     yield
-    logging.info(f"Finished test: {request.node.name}")
+    logger.info(f"Finished test: {request.node.name}")
+
+@pytest.fixture
+def iframe_page(driver, config):
+    """IFrame page fixture"""
+    logger = LoggerConfig.get_logger(__name__)
+
+    page = IFramePage(driver)
+    logger.info("IFrame page fixture initialized")
+    return page

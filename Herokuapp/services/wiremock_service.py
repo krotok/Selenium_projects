@@ -1,27 +1,30 @@
 import requests
-import logging
 from typing import Dict, Any, Optional
+from utils.log_decorators import LoggingMixin, log_function_call, log_api_call
 
-logger = logging.getLogger(__name__)
 
-
-class WireMockService:
+class WireMockService(LoggingMixin):
     def __init__(self, base_url: str = "http://localhost:8080"):
         self.base_url = base_url
         self.session = requests.Session()
+        self.logger.debug(f"Initialized WireMockService with base URL: {base_url}")
 
+    @log_api_call("Create stub mapping")
+    @log_function_call(log_args=True, log_result=True)
     def create_stub(self, stub_config: Dict[str, Any]) -> bool:
         """Create a new stub mapping"""
         url = f"{self.base_url}/__admin/mappings"
         response = self.session.post(url, json=stub_config)
 
         if response.status_code == 201:
-            logger.info(f"Stub created successfully: {stub_config['request']['url']}")
+            self.logger.info(f"Stub created successfully: {stub_config['request']['url']}")
             return True
         else:
-            logger.error(f"Failed to create stub: {response.text}")
+            self.logger.error(f"Failed to create stub: {response.text}")
             return False
 
+    @log_api_call("Create login stub")
+    @log_function_call(log_args=True, log_result=True)
     def create_login_stub(self, username: str, success: bool = True) -> bool:
         """Create stub for login endpoint"""
         stub_config = {
@@ -46,8 +49,11 @@ class WireMockService:
                 }
             }
         }
+        self.logger.info(f"Creating login stub for user: {username} (success: {success})")
         return self.create_stub(stub_config)
 
+    @log_api_call("Create dynamic content stub")
+    @log_function_call(log_args=True, log_result=True)
     def create_dynamic_content_stub(self, delay: int = 0) -> bool:
         """Create stub for dynamic content with delay"""
         stub_config = {
@@ -64,14 +70,24 @@ class WireMockService:
                 "fixedDelayMilliseconds": delay * 1000
             }
         }
+        self.logger.info(f"Creating dynamic content stub with delay: {delay}s")
         return self.create_stub(stub_config)
 
+    @log_api_call("Reset mappings")
+    @log_function_call(log_result=True)
     def reset_mappings(self) -> bool:
         """Reset all stub mappings"""
         url = f"{self.base_url}/__admin/mappings/reset"
         response = self.session.post(url)
-        return response.status_code == 200
+        success = response.status_code == 200
+        if success:
+            self.logger.info("WireMock mappings reset successfully")
+        else:
+            self.logger.warning("Failed to reset WireMock mappings")
+        return success
 
+    @log_api_call("Get received requests")
+    @log_function_call(log_result=True)
     def get_requests(self) -> Dict[str, Any]:
         """Get all received requests"""
         url = f"{self.base_url}/__admin/requests"
