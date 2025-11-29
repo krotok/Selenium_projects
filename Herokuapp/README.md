@@ -98,12 +98,25 @@ pytest tests/ -m "ui" -v
 
 # Run with different environment
 pytest tests/ --env=stage -v
-pytest tests/ -v --alluredir=rports/allure-results --env=dev --log-level-pytest=DEBUG
+pytest tests/ -v --alluredir=reports/allure-results --env=dev --log-level-pytest=DEBUG
 
 # Using the test runner
 python run_tests.py --mode=basic
 python run_tests.py --mode=allure --env=stage --headless --log-level=DEBUG
 
+# Debug mode. Run with detailed logging and no headless
+pytest tests/ -v -s --headless=false --log-level-pytest=DEBUG
+
+# Using Docker Compose. Run complete test suite in containers
+docker-compose up tests
+
+# Custom Docker Execution. Build and run tests
+docker build -t herokuapp-tests .
+docker run -v $(pwd)/reports:/app/reports herokuapp-tests
+
+# View Allure reports
+docker-compose up allure
+# Access reports at http://localhost:5050
 
 3. **Generate Report:**
 # Generate and view Allure report

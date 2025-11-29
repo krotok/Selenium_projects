@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  tests:
+    build:
+      context: ../../..
+      dockerfile: ../docker/Dockerfile
+    container_name: herokuapp-tests
+    environment:
+      - ENV=stage
+      - BROWSER=chrome
+      - HEADLESS=true
+    volumes:
+      - ../../reports:/app/reports
+    networks:
+      - test-network
+
+  postgres:
+    image: postgres:13
+    container_name: test-postgres
+    environment:
+      POSTGRES_DB: herokuapp_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+    ports:
+      - "5432:5432"
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

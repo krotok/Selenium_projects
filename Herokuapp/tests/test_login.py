@@ -25,38 +25,11 @@ class TestLogin(LoggingMixin):
         self.api_service.close()
         self.logger.info("Test cleanup completed")
 
-    # @allure.story("Successful Login")
-    # @allure.severity(allure.severity_level.CRITICAL)
-    # @allure.description("Test successful login with valid credentials")
-    # def test_successful_login(self):
-    #     self.logger.info("Starting test_successful_login")
-    #
-    #     with allure.step("Navigate to login page"):
-    #         self.login_page.navigate_to_login(self.config.base_url)
-    #         assert self.login_page.is_on_login_page(), "Should be on login page"
-    #         self.login_page.take_screenshot("login_page_loaded")
-    #
-    #     with allure.step("Perform login with valid credentials"):
-    #         self.login_page.login("tomsmith", "SuperSecretPassword!")
-    #
-    #     with allure.step("Verify successful login"):
-    #         assert self.login_page.is_logout_visible(), "Logout button should be visible after successful login"
-    #         flash_message = self.login_page.get_flash_message()
-    #         assert "You logged into a secure area!" in flash_message
-    #         self.logger.info("Login successful - user redirected to secure area")
-    #
-    #     with allure.step("Take screenshot after login"):
-    #         self.login_page.take_screenshot("after_successful_login")
-
     @allure.story("Successful Login")
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.description("Test successful login with valid credentials")
     def test_successful_login(self):
         self.logger.info("Starting test_successful_login")
-
-        # Временная отладка
-        print(f"DEBUG: Config type: {type(self.config)}")
-        print(f"DEBUG: Config attributes: {dir(self.config)}")
 
         with allure.step("Navigate to login page"):
             self.login_page.navigate_to_login(self.config.base_url)
@@ -65,6 +38,33 @@ class TestLogin(LoggingMixin):
 
         with allure.step("Perform login with valid credentials"):
             self.login_page.login("tomsmith", "SuperSecretPassword!")
+
+        with allure.step("Verify successful login"):
+            assert self.login_page.is_logout_visible(), "Logout button should be visible after successful login"
+            flash_message = self.login_page.get_flash_message()
+            assert "You logged into a secure area!" in flash_message
+            self.logger.info("Login successful - user redirected to secure area")
+
+        with allure.step("Take screenshot after login"):
+            self.login_page.take_screenshot("after_successful_login")
+
+    # @allure.story("Successful Login")
+    # @allure.severity(allure.severity_level.CRITICAL)
+    # @allure.description("Test successful login with valid credentials")
+    # def test_successful_login(self):
+    #     self.logger.info("Starting test_successful_login")
+    #
+    #     # Временная отладка
+    #     print(f"DEBUG: Config type: {type(self.config)}")
+    #     print(f"DEBUG: Config attributes: {dir(self.config)}")
+    #
+    #     with allure.step("Navigate to login page"):
+    #         self.login_page.navigate_to_login(self.config.base_url)
+    #         assert self.login_page.is_on_login_page(), "Should be on login page"
+    #         self.login_page.take_screenshot("login_page_loaded")
+    #
+    #     with allure.step("Perform login with valid credentials"):
+    #         self.login_page.login("tomsmith", "SuperSecretPassword!")
 
     @allure.story("Failed Login")
     @allure.severity(allure.severity_level.NORMAL)

@@ -3,13 +3,12 @@ import requests
 import logging
 import allure
 from services.api_service import ApiService
-
-logger = logging.getLogger(__name__)
+from utils.log_decorators import LoggingMixin
 
 
 @allure.epic("API Testing")
 @allure.feature("Integration Tests")
-class TestApiIntegration:
+class TestApiIntegration(LoggingMixin):
     @pytest.fixture(autouse=True)
     def setup(self, config):
         self.config = config
@@ -27,7 +26,7 @@ class TestApiIntegration:
             except requests.exceptions.HTTPError:
                 # Herokuapp doesn't have status endpoint, so we expect this to fail
                 # In real scenario, this would be a valid test
-                logger.info("Status endpoint not available - expected for Herokuapp")
+                self.logger.info("Status endpoint not available - expected for Herokuapp")
 
     @allure.story("Endpoint Availability")
     @allure.severity(allure.severity_level.NORMAL)
@@ -46,4 +45,4 @@ class TestApiIntegration:
                 # Herokuapp returns 404 for nonexistent pages
                 assert response.status_code == 404, "Nonexistent endpoint should return 404"
             except Exception as e:
-                logger.info(f"Expected behavior for nonexistent endpoint: {e}")
+                self.logger.info(f"Expected behavior for nonexistent endpoint: {e}")
