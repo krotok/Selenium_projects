@@ -1,7 +1,6 @@
 # Herokuapp Test Automation Framework
 
 ## Project Overview
-
 This framework showcases enterprise-level test automation with:
 - **Selenium WebDriver** for UI testing
 - **Page Object Model** with service layer abstraction
