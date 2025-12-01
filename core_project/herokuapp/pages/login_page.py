@@ -44,6 +44,16 @@ class LoginPage(CoreLoginPage):
         self.logger.debug(f"Logout button visible: {is_visible}")
         return is_visible
 
+    @allure.step("Verify logout button is not present")
+    @log_function_call(log_result=True)
+    def is_logout_not_present(self) -> bool:
+        """Verify that logout button is not present on page"""
+        try:
+            return not self.is_element_present(self.LOGOUT_BUTTON, timeout=2)
+        except Exception as e:
+            self.logger.debug(f"Error checking logout absence: {e}")
+            return True  # If error the element doesn't present
+
     @allure.step("Check if on login page")
     @log_function_call(log_result=True)
     def is_on_login_page(self) -> bool:

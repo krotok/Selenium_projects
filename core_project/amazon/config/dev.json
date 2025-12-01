@@ -1,0 +1,14 @@
+{
+  "base_url": "https://www.amazon.com",
+  "search_term": "samsung smartphone",
+  "min_price": 100,
+  "max_price": 1000,
+  "items_to_add": 2,
+  "browser": "chrome",
+  "headless": false,
+  "timeout": 15,
+  "logging": {
+    "level": "INFO",
+    "log_file": "logs/amazon_automation.log"
+  }
+}

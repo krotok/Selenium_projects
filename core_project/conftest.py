@@ -2,6 +2,7 @@ import pytest
 import allure
 import sys
 import os
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
@@ -9,9 +10,11 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 # Добавляем пути для импортов
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'core'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'herokuapp'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'amazon'))
 
-from herokuapp.config.init import Config
-from core.utils.logger import LoggerConfig
+from core_project.herokuapp.config.init import Config as HerokuappConfig
+from core_project.amazon.config.init import Config as AmazonConfig
+from core_project.core.utils.logger import LoggerConfig
 
 
 def pytest_addoption(parser):
@@ -28,22 +31,29 @@ def pytest_addoption(parser):
     parser.addoption(
         "--log-level-pytest", action="store", default="INFO", help="Log level"
     )
+    parser.addoption(
+        "--project", action="store", default="herokuapp", help="Project: herokuapp or amazon"
+    )
 
 
 @pytest.fixture(scope="session")
 def config(request):
     """Load Herokuapp specific configuration"""
+    project = request.config.getoption("--project")
     env = request.config.getoption("--env")
     log_level = request.config.getoption("--log-level-pytest")
 
-    config_obj = Config(env)
+    if project == "amazon":
+        config_obj = AmazonConfig(env)
+    else:
+        config_obj = HerokuappConfig(env)
 
     # Override log level from command line
     if log_level:
         LoggerConfig.setup_logging(log_level=log_level)
 
     logger = LoggerConfig.get_logger(__name__)
-    logger.info(f"Herokuapp configuration loaded for environment: {env}")
+    logger.info(f"{project} configuration loaded for environment: {env}")
 
     return config_obj
 
@@ -104,3 +114,4 @@ def driver(request, config):
 
     driver.quit()
     logger.info("WebDriver closed")
+

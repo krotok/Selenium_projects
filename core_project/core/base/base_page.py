@@ -66,9 +66,10 @@ class BasePage(LoggingMixin):
     def is_element_present(self, locator: Tuple[str, str], timeout: int = None) -> bool:
         """Check if element is present without throwing exception"""
         try:
-            self.wait_for_element(locator, timeout)
-            return True
-        except TimeoutException:
+            element = self.wait_for_element(locator, timeout or 2)  # Короткий таймаут по умолчанию
+            return element is not None
+        except Exception as e:
+            self.logger.debug(f"Element {locator} not present: {e}")
             return False
 
     @log_function_call(log_args=False)

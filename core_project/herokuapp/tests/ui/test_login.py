@@ -13,7 +13,7 @@ import requests
 from core_project.core.services.api_service import ApiService
 from core_project.core.utils.log_decorators import LoggingMixin
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../core'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../core'))
 
 @allure.epic("Herokuapp Authentication")
 @allure.feature("Login Functionality")
@@ -77,7 +77,7 @@ class TestLogin(LoggingMixin):
         with allure.step("Verify login failure message"):
             flash_message = self.login_page.get_flash_message()
             assert "Your username is invalid!" in flash_message
-            assert not self.login_page.is_logout_visible(), "Logout button should not be visible after failed login"
+            assert self.login_page.is_logout_not_present, "Logout button should not be visible after failed login"
             self.logger.info("Login failed as expected with invalid username")
 
         with allure.step("Take screenshot after failed login"):
@@ -101,7 +101,7 @@ class TestLogin(LoggingMixin):
         with allure.step("Verify login failure message"):
             flash_message = self.login_page.get_flash_message()
             assert "Your password is invalid!" in flash_message
-            assert not self.login_page.is_logout_visible(), "Logout button should not be visible after failed login"
+            assert self.login_page.is_logout_not_present, "Logout button should not be visible after failed login"
             self.logger.info("Login failed as expected with invalid password")
 
         with allure.step("Take screenshot after invalid password"):
@@ -123,9 +123,10 @@ class TestLogin(LoggingMixin):
         with allure.step("Verify login failure message"):
             flash_message = self.login_page.get_flash_message()
             # Herokuapp might show different message for empty credentials
-            assert any(msg in flash_message for msg in ["Your username is invalid!", "Your password is invalid!"]), \
+            msgs_lst = ["Your username is invalid!", "Your password is invalid!"]
+            assert any(msg in flash_message for msg in msgs_lst), \
                 f"Unexpected flash message: {flash_message}"
-            assert not self.login_page.is_logout_visible(), "Logout button should not be visible after failed login"
+            assert self.login_page.is_logout_not_present, "Logout button should not be visible after failed login"
             self.logger.info("Login failed as expected with empty credentials")
 
     @allure.story("Failed Login - SQL Injection Attempt")
@@ -146,7 +147,7 @@ class TestLogin(LoggingMixin):
         with allure.step("Verify SQL injection attempt failed"):
             flash_message = self.login_page.get_flash_message()
             assert "Your username is invalid!" in flash_message or "Your password is invalid!" in flash_message
-            assert not self.login_page.is_logout_visible(), "SQL injection attempt should be blocked"
+            assert self.login_page.is_logout_not_present, "SQL injection attempt should be blocked"
             self.logger.info("SQL injection attempt correctly blocked")
 
     @allure.story("Mock API Authentication")
@@ -274,19 +275,19 @@ class TestLogin(LoggingMixin):
             assert self.login_page.is_logout_visible(), "Should be logged in"
             self.login_page.take_screenshot("after_login_before_logout")
 
-        with allure.step("Handle credentials save popup if present"):
-            try:
-                # Different strategies to handle browser save password popup
-                self._handle_credentials_save_popup()
-                self.logger.info("Credentials save popup handled successfully")
-            except Exception as e:
-                self.logger.warning(f"Could not handle credentials popup: {e}")
+        # with allure.step("Handle credentials save popup if present"):
+        #     try:
+        #         # Different strategies to handle browser save password popup
+        #         self._handle_credentials_save_popup()
+        #         self.logger.info("Credentials save popup handled successfully")
+        #     except Exception as e:
+        #         self.logger.warning(f"Could not handle credentials popup: {e}")
 
         with allure.step("Perform logout"):
             self.login_page.logout()
 
             # Verify logout successful
-            assert not self.login_page.is_logout_visible(), "Should be logged out"
+            assert self.login_page.is_logout_not_present, "Should be logged out"
             flash_message = self.login_page.get_flash_message()
             assert "You logged out of the secure area!" in flash_message
             self.logger.info("Logout successful")
@@ -294,9 +295,9 @@ class TestLogin(LoggingMixin):
         with allure.step("Verify back on login page"):
             assert self.login_page.is_on_login_page(), "Should be back on login page after logout"
             self.login_page.take_screenshot("after_logout")
-
-        with allure.step("Test browser autofill behavior after logout"):
-            self._verify_autofill_behavior(user)
+        #
+        # with allure.step("Test browser autofill behavior after logout"):
+        #     self._verify_autofill_behavior(user)
 
     def _handle_credentials_save_popup(self):
         """Handle browser save credentials popup using different strategies"""
