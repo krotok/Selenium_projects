@@ -1,5 +1,7 @@
 Project Overview
-This is a modular, scalable test automation framework built using Selenium for automated testing of web applications. The framework follows a hybrid architecture that separates reusable core components from project-specific implementations, enabling maximum code reuse and maintainability across multiple projects
+This is a modular, scalable test automation framework built using Selenium for automated testing of web applications. 
+The framework follows a hybrid architecture that separates reusable core components from project-specific implementations, enabling maximum code reuse and 
+maintainability across multiple projects
 
 **Core Framework Components**
 The core_project/ directory contains framework-level code that is completely independent of any specific application under test. This separation provides several key advantages:

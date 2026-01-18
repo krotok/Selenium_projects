@@ -7,7 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
-# Добавляем пути для импортов
+# Add paths for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'core'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'herokuapp'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'amazon'))
